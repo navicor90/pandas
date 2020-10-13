@@ -1847,6 +1847,9 @@ class RollingAndExpandingMixin(BaseWindow):
             # to avoid potential overflow, cast the data to float64
             X = X.astype("float64")
             Y = Y.astype("float64")
+            summarize = lambda x: x.rolling(
+                window, min_periods=self.min_periods, center=self.center
+            ).sum()
             mean = lambda x: x.rolling(
                 window, self.min_periods, center=self.center
             ).mean(**kwargs)
@@ -1856,7 +1859,7 @@ class RollingAndExpandingMixin(BaseWindow):
                 .count(**kwargs)
             )
             bias_adj = count / (count - ddof)
-            return (mean(X * Y) - mean(X) * mean(Y)) * bias_adj
+            return (summarize(X * Y) - (mean(X) * mean(Y))) * bias_adj
 
         return flex_binary_moment(
             self._selected_obj, other._selected_obj, _get_cov, pairwise=bool(pairwise)
